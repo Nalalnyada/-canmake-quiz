@@ -1,0 +1,153 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+
+const sparkleSound = typeof Audio !== "undefined" ? new Audio("/sparkle.mp3") : null;
+
+const energies = [
+  {
+    id: "siren",
+    name: "พลังไซเรน ✨",
+    image: "/siren.png",
+    description:
+      "คุณคือไซเรนผู้มากเสน่ห์แห่งท้องทะเล 🌊 สง่างาม มีเสน่ห์เย้ายวนใจ และเต็มไปด้วยมนตร์เสน่ห์ที่ดึงดูดทุกสายตา",
+    items: ["Canmake Mermaid Skin Gel UV", "Silky Souffle Eyes", "Stay-On Balm Rouge"]
+  },
+  {
+    id: "fairy",
+    name: "พลังนางฟ้า 🧚",
+    image: "/fairy.png",
+    description:
+      "คุณคือนางฟ้าน้อยผู้แสนอบอุ่น สดใส และเต็มไปด้วยพลังแห่งธรรมชาติ ✨ ใครอยู่ใกล้ก็รู้สึกใจฟู!",
+    items: ["Canmake Cream Cheek", "Perfect Multi Eyes", "Marshmallow Finish Powder"]
+  },
+  {
+    id: "blackcat",
+    name: "พลังแมวดำ 🐈‍⬛",
+    image: "/blackcat.png",
+    description:
+      "คุณคือแมวดำผู้ลึกลับ ขี้เล่น และมีเสน่ห์ดึงดูดอย่างน่าค้นหา ✨ ไม่ว่าใครก็อดเหลียวมองไม่ได้!",
+    items: ["Canmake Creamy Touch Liner", "Quick Lash Curler", "Shading Powder"]
+  },
+  {
+    id: "unicorn",
+    name: "พลังยูนิคอร์น 🦄",
+    image: "/unicorn.png",
+    description:
+      "คุณคือยูนิคอร์นผู้รักอิสระ มีจินตนาการสูง และเปล่งประกายไม่เหมือนใคร 🌈 โลกของคุณเต็มไปด้วยสีสัน",
+    items: ["Glow Fleur Cheeks", "Perfect Stylist Eyes", "Stay-On Balm Rouge"]
+  },
+  {
+    id: "dragon",
+    name: "พลังมังกร 🔥",
+    image: "/dragon.png",
+    description:
+      "คุณคือมังกรผู้กล้าแกร่งและสง่างาม มีพลังในตัวและไม่เกรงกลัวต่ออุปสรรค 🐉 ทุกก้าวของคุณเต็มไปด้วยพลัง",
+    items: ["Marshmallow Finish Powder", "Mix Eyebrow", "Color Mixing Concealer"]
+  }
+];
+
+const questions = [
+  // (เหมือนเดิม)
+];
+
+export default function CanmakeQuiz() {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [result, setResult] = useState(null);
+  const [showShare, setShowShare] = useState(false);
+
+  const startQuiz = () => setStep(1);
+
+  const handleAnswer = (value) => {
+    const newAnswers = [...answers, value];
+    if (newAnswers.length >= questions.length) {
+      const counts = newAnswers.reduce((acc, val) => {
+        acc[val] = (acc[val] || 0) + 1;
+        return acc;
+      }, {});
+      const max = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+      const found = energies.find((e) => e.id === max);
+      setResult(found);
+      setStep(2);
+      sparkleSound?.play();
+      setTimeout(() => setShowShare(true), 1500);
+    } else {
+      setAnswers(newAnswers);
+    }
+  };
+
+  const currentQuestion = questions[answers.length];
+
+  return (
+    <div className="min-h-screen bg-pink-50 flex flex-col items-center justify-center text-center p-4">
+      {step === 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          <h1 className="text-3xl font-bold">🔮 ค้นหาพลังแฟนตาซีในตัวคุณ!</h1>
+          <p className="text-lg">ตอบคำถามสั้นๆ แล้วมาดูกันว่าคุณมีพลังแบบไหน ✨</p>
+          <Button onClick={startQuiz} className="rounded-2xl px-6 py-2 text-lg bg-pink-400 hover:bg-pink-500">
+            เริ่มเล่นเลย 💖
+          </Button>
+        </motion.div>
+      )}
+
+      {step === 1 && currentQuestion && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 max-w-md">
+          <h2 className="text-xl font-semibold">{currentQuestion.text}</h2>
+          <div className="grid grid-cols-1 gap-2">
+            {currentQuestion.options.map((opt, idx) => (
+              <Button key={idx} variant="outline" onClick={() => handleAnswer(opt.value)}>
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {step === 2 && result && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-md space-y-4 relative"
+        >
+          <h2 className="text-2xl font-bold text-pink-600 animate-bounce">🎉 คุณคือ... {result.name}</h2>
+          <img src={result.image} alt={result.name} className="w-48 mx-auto rounded-2xl shadow-md animate-pulse" />
+          <p className="text-lg">{result.description}</p>
+
+          <Card className="bg-white/70 backdrop-blur shadow-lg">
+            <CardContent className="space-y-2 p-4">
+              <h3 className="font-semibold text-pink-500">🧴 ไอเท็มแนะนำจาก Canmake:</h3>
+              <ul className="list-disc list-inside text-left">
+                {result.items.map((item, i) => (
+                  <li key={i}>💄 {item}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {showShare && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 space-y-2"
+            >
+              <p className="text-pink-500 font-medium">แชร์ผลลัพธ์ของคุณให้เพื่อนรู้กันเลย! 🌟</p>
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={() => navigator.share?.({
+                  title: `ฉันคือ ${result.name}! ✨`,
+                  text: result.description,
+                  url: window.location.href
+                })}>📲 แชร์ผ่านมือถือ</Button>
+                <Button variant="secondary" onClick={() => navigator.clipboard.writeText(window.location.href)}>
+                  🔗 คัดลอกลิงก์
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
+    </div>
+  );
+}
